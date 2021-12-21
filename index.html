@@ -1,0 +1,82 @@
+<style>
+    button {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%) scaleY(0.8);
+        border: none;
+        background-color: rgb(75, 107, 212);
+        border-radius: 100%;
+        height: 150px;
+        width: 150px;
+        box-shadow: #334c9b 0px 10px;
+        padding: 0;
+        transition: .2s;
+        cursor: pointer;
+        filter: drop-shadow(rgba(75, 107, 212, 0.329) 0 0 10px);
+    }
+
+
+    button:disabled {
+        box-shadow: none;
+        margin-top: 10px;
+    }
+
+    img {
+        width: 75px;
+        height: 75px;
+        margin-left: 10px;
+    }
+</style>
+
+<body onload="playMorse()">
+    <form id="demo">
+        <input type="text" pattern="[.\- ]+" name="code" value="-.. .-. . ..   ...- ..   .----" style="display: none;">
+        <button id="play"><img src="play-button.png"></button>
+    </form>
+    <script>
+        var AudioContext = window.AudioContext || window.webkitAudioContext;
+        var ctx = new AudioContext();
+        var dot = 1.2 / 15;
+
+        document.getElementById("demo").onsubmit = function () {
+            document.getElementById("play").disabled = true;
+            var t = ctx.currentTime;
+
+            var oscillator = ctx.createOscillator();
+            oscillator.type = "sine";
+            oscillator.frequency.value = 600;
+
+            var gainNode = ctx.createGain();
+            gainNode.gain.setValueAtTime(0, t);
+
+            this.code.value.split("").forEach(function (letter) {
+                switch (letter) {
+                    case ".":
+                        gainNode.gain.setValueAtTime(1, t);
+                        t += dot;
+                        gainNode.gain.setValueAtTime(0, t);
+                        t += dot;
+                        break;
+                    case "-":
+                        gainNode.gain.setValueAtTime(1, t);
+                        t += 3 * dot;
+                        gainNode.gain.setValueAtTime(0, t);
+                        t += dot;
+                        break;
+                    case " ":
+                        t += 7 * dot;
+                        break;
+                }
+                
+            });
+
+            oscillator.connect(gainNode);
+            gainNode.connect(ctx.destination);
+
+            oscillator.start();
+            setTimeout(() => {document.getElementById("play").disabled = false;}, 10000);
+            return false;
+        }
+    </script>
+</body>
